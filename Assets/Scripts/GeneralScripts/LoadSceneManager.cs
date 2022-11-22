@@ -9,17 +9,4 @@ public class LoadSceneManager : Singleton<LoadSceneManager>
     {
         SceneManager.LoadScene(sceneName);
     }
-
-#if UNITY_EDITOR
-    /////////////// テスト＆確認用 ////////////////////////////////
-    private void Start()
-    {
-        SceneManager.sceneLoaded += Test;
-    }
-
-    public void Test(Scene nextScene, LoadSceneMode mode)
-    {
-        Debug.Log($"GameMode is [ {AppManager.Instance.GameMode} ].");
-    }
-#endif
 }
