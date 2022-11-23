@@ -14,6 +14,7 @@ public enum PawnState
 public class Pawn
 {
     private Dictionary<Vector3, PawnState> _stateDic = new Dictionary<Vector3, PawnState>();
+    public PawnState State { get; private set; }
 
     public Pawn(PawnState forwardState, PawnState backState, PawnState leftState, PawnState rightState, PawnState topState, PawnState bottomState)
     {
@@ -23,25 +24,26 @@ public class Pawn
         _stateDic.Add(Vector3.right, rightState);
         _stateDic.Add(Vector3.up, topState);
         _stateDic.Add(Vector3.down, bottomState);
+        State = _stateDic[Vector3.up];
     }
 
     public PawnState ChangeState(Vector3 input)
     {
         if (input == Vector3.forward)
         {
-            return ForwardRoll();
+            return State = ForwardRoll();
         }
         if (input == Vector3.back)
         {
-            return BackRoll();
+            return State = BackRoll();
         }
         if (input == Vector3.right)
         {
-            return RightRoll();
+            return State = RightRoll();
         }
         if (input == Vector3.left)
         {
-            return LeftRoll();
+            return State = LeftRoll();
         }
 
         return PawnState.None;

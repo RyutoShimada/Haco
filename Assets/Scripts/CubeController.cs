@@ -12,7 +12,12 @@ public class CubeController : MonoBehaviour
     private Pawn _pawn;
     private void Start()
     {
-        _pawn = new Pawn(PawnState.Attack, PawnState.Attack, PawnState.Shield, PawnState.Shield, PawnState.Wing, PawnState.DoubleAttack);
+        _pawn = new Pawn(PawnState.Attack, 
+                         PawnState.Attack, 
+                         PawnState.Shield, 
+                         PawnState.Shield, 
+                         PawnState.Wing, 
+                         PawnState.DoubleAttack);
     }
 
     void Update()

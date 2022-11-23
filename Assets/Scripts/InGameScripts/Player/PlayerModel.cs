@@ -2,20 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerModel : MonoBehaviour
+public enum Player
 {
-    [SerializeField]
-    private GameObject _modelPrefab = default;
-    [SerializeField]
-    private Vector3 _instancePos = default;
+    Player1,
+    Player2,
+    NPC
+}
 
-    private void Start()
-    {
-        CreateModel();
-    }
+public class PlayerModel
+{
+    public Player Player { get; private set; }
 
-    private void CreateModel()
+    public PawnState State { get; set; }
+
+    public PlayerModel(Player player, PawnState state)
     {
-        Instantiate(_modelPrefab, _instancePos, transform.rotation, transform);
+        Player = player;
+        State = state;
     }
 }

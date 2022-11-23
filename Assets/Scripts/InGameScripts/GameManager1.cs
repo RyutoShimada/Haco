@@ -6,22 +6,22 @@ public partial class GameManager
 {
     private void GameStart()
     {
-        ChangePhase(GamePhase.ChangeTurn);
+        //ChangePhase(GamePhase.ChangeTurn);
     }
 
     private void ChangeTurn()
     {
-        ChangePhase(GamePhase.PlayerBehavior);
+        //ChangePhase(GamePhase.PlayerBehavior);
     }
 
     private void PlayerBehavior()
     {
-        ChangePhase(GamePhase.CheckLife);
+        //ChangePhase(GamePhase.CheckLife);
     }
 
     private void CheckLife()
     {
-        ChangePhase(GamePhase.ChangeTurn);
+        //ChangePhase(GamePhase.ChangeTurn);
     }
 
     private void GameOver()

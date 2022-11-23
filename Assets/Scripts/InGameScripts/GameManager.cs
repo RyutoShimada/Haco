@@ -6,13 +6,6 @@ public partial class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    public enum Player
-    {
-        Player1,
-        Player2,
-        NPC
-    }
-
     public enum GamePhase
     {
         GameStart,

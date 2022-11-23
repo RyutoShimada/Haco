@@ -5,30 +5,31 @@ using UnityEngine;
 /// <summary>
 /// フィールドの情報を持つクラス
 /// </summary>
-public class FieldModel : MonoBehaviour
+public class FieldModel
 {
-    [SerializeField]
-    private GameObject _tilePrefab = default;
-    [SerializeField]
-    private Material _wingTileMaterial = default;
+    private const byte FieldWidth = 5;
+    private const byte FieldHeight = 5;
+    private FieldController _controller;
 
-    private GameObject[,] _tiles = new GameObject[5, 5];
+    /// <summary>
+    /// keyはマスの座標（-2, -2～2, 2）、valueは出目の効果
+    /// </summary>
+    internal Dictionary<PlayerModel, Vector2> _tilesData = new Dictionary<PlayerModel, Vector2>();
 
-    private void Start()
+    public FieldModel(FieldController controller)
     {
-        CreateField();
+        _controller = controller;
     }
 
-    private void CreateField()
+    public void InitPawnPos(PlayerModel player, Vector3 pos)
     {
-        for (int x = 0; x < 5; x++)
-        {
-            for (int y = 0; y < 5; y++)
-            {
-                _tiles[x,y] = Instantiate(_tilePrefab, new Vector3(x - 2, 0, y - 2), _tilePrefab.gameObject.transform.rotation, transform);
-            }
-        }
+        _tilesData.Add(player, new Vector2(pos.x, pos.z));
+        _controller.OnUpdate(_tilesData[player], player.State);
+    }
 
-        _tiles[2,2].GetComponent<Renderer>().material = _wingTileMaterial;
+    public void ChangePawnPos(PlayerModel player, Vector3 input)
+    {
+        _tilesData[player] += new Vector2(input.x, input.z);
+        _controller.OnUpdate(_tilesData[player], player.State);
     }
 }
