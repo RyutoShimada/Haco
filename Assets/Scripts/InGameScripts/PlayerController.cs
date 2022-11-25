@@ -1,20 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public enum Player
-{
-    Player1,
-    Player2,
-    NPC
-}
+using Player;
 
 public class PlayerController : MonoBehaviour
 {
     private enum PlayerState
     {
         Stay,
-        RollDaice,
+        RollDice,
         SelectPawn,
         Input,
         Movement,
@@ -23,11 +17,11 @@ public class PlayerController : MonoBehaviour
     }
 
     [SerializeField]
-    private Player _player;
+    private User _user;
     [SerializeField]
-    private Transform _leftPawnPos = default;
+    private Transform _leftPawnT = default;
     [SerializeField]
-    private Transform _rightPawnPos = default;
+    private Transform _rightPawnT = default;
     [SerializeField, Header("回転速度")]
     private float _rollSpeed = 3f;
     [SerializeField]
@@ -41,10 +35,16 @@ public class PlayerController : MonoBehaviour
     private byte _movableRange = default;
     private Transform _currentPawnTransform = default;
     private Coroutine _corutine;
+    private PlayerData _leftData;
+    private PlayerData _rightData;
+    private PlayerData _currentData;
 
-    public Player Player { get => _player; }
     public PawnState State { get => _leftPawn.State; }
 
+    public PlayerData LeftData { get => _leftData; }
+    public PlayerData RightData { get => _rightData; }
+
+    public System.Func<Vector2, PlayerData, bool> CanMove;
 
     private void Awake()
     {
@@ -54,7 +54,7 @@ public class PlayerController : MonoBehaviour
                          PawnState.Shield,
                          PawnState.Wing,
                          PawnState.DoubleAttack,
-                         new Vector2(_leftPawnPos.position.x, _leftPawnPos.position.z));
+                         new Vector2(_leftPawnT.position.x, _leftPawnT.position.z));
 
         _rightPawn = new Pawn(PawnState.Attack,
                          PawnState.Attack,
@@ -62,13 +62,16 @@ public class PlayerController : MonoBehaviour
                          PawnState.Shield,
                          PawnState.Wing,
                          PawnState.DoubleAttack,
-                         new Vector2(_rightPawnPos.position.x, _rightPawnPos.position.z));
+                         new Vector2(_rightPawnT.position.x, _rightPawnT.position.z));
+
+        _leftData = new PlayerData(_user, _leftPawn.State, (int)_leftPawnT.position.x, (int)_leftPawnT.position.z);
+        _rightData = new PlayerData(_user, _rightPawn.State, (int)_rightPawnT.position.x, (int)_rightPawnT.position.z);
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        ChangeState(PlayerState.RollDaice);
+        ChangeState(PlayerState.RollDice);
     }
 
     // Update is called once per frame
@@ -76,17 +79,17 @@ public class PlayerController : MonoBehaviour
     {
 
     }
+
     private void ChangeState(PlayerState state)
     {
         _state = state;
-        Debug.Log(state);
-
+        
         switch (_state)
         {
             case PlayerState.Stay:
                 break;
-            case PlayerState.RollDaice:
-                RollDaice();
+            case PlayerState.RollDice:
+                RollDice();
                 break;
             case PlayerState.SelectPawn:
                 SelectPawn();
@@ -108,7 +111,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void RollDaice()
+    private void RollDice()
     {
         byte random = (byte)Random.Range(0, _dice.Length);
         if (random >= 0 && random < _dice.Length)
@@ -121,8 +124,9 @@ public class PlayerController : MonoBehaviour
 
     private void SelectPawn()
     {
-        _currentPawnTransform = _leftPawnPos;
+        _currentPawnTransform = _leftPawnT;
         //_currentPawnTransform = _rightPawnPos;
+        _currentData = _leftData;
         ChangeState(PlayerState.Input);
     }
 
@@ -131,7 +135,7 @@ public class PlayerController : MonoBehaviour
         _input = Vector3.zero; // 初期化
 
         // 開発用（後でスマホ用に変更予定）
-        if (Player == Player.Player1)
+        if (_user == User.Player1)
         {
             if (Input.GetKeyDown(KeyCode.A)) { _input = Vector3.left; }
             if (Input.GetKeyDown(KeyCode.D)) { _input = Vector3.right; }
@@ -156,16 +160,23 @@ public class PlayerController : MonoBehaviour
     {
         if (_corutine != null) StopCoroutine(_corutine);
 
-        if (FieldController.Instance.CanMove(_currentPawnTransform.position, dir))
+        // nullだった時動かなくなるのを防ぐ
+        if (CanMove == null)
+        {
+            CanMove += (x, y) => true;
+        }
+
+        if (CanMove.Invoke(new Vector2(dir.x, dir.z), _currentData))
         {
             //          基準となる自分の座標　　移動の処理（Vector3.down をいれないと上に上がっていく）
             var anchor = _currentPawnTransform.position + (Vector3.down + dir) * 0.5f;
             var axis = Vector3.Cross(Vector3.up, dir);
 
-            // 更新 ※Stateに代入できるのは避けたい（この形式はどうにかしたい）
             _leftPawn.ChangeState(dir);
             //FieldController.Instance.ChangePos(dir, _playerModel);
             _corutine = StartCoroutine(Roll(anchor, axis));
+            _leftData.PointX += (int)dir.x;
+            _leftData.PointY += (int)dir.z;
         }
         else
         {
@@ -189,6 +200,11 @@ public class PlayerController : MonoBehaviour
         ChangeState(PlayerState.Input);
     }
 
+    /// <summary>
+    /// Updateを使いたい時だけ使えるようにした
+    /// </summary>
+    /// <param name="action">Updateで回したいメソッド</param>
+    /// <returns></returns>
     private IEnumerator OnUpdate(System.Action action)
     {
         while (true)

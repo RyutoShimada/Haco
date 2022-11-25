@@ -9,6 +9,16 @@ public class FieldController : MonoBehaviour
     [SerializeField]
     PlayerController _playerController;
 
+    [SerializeField]
+    private GameObject _cellPrefab;
+    /// <summary>
+    /// 中央の加速マス
+    /// </summary>
+    [SerializeField]
+    private Material material;
+
+    private Field _field;
+
     private const byte FieldWidth = 5;
     private const byte FieldHeight = 5;
     private FieldController _controller;
@@ -26,53 +36,26 @@ public class FieldController : MonoBehaviour
     void Start()
     {
         //InitPawnPos(_playerController._playerModel, _playerController.gameObject.transform.position);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    //public void InitPawnPos(PlayerModel player, Vector3 pos)
-    //{
-    //    _tilesData.Add(player, new Vector2(pos.x, pos.z));
-    //    _controller.OnUpdate(_tilesData[player], player.State);
-    //}
-
-    //public void ChangePawnPos(PlayerModel player, Vector3 input)
-    //{
-    //    _tilesData[player] += new Vector2(input.x, input.z);
-    //    _controller.OnUpdate(_tilesData[player], player.State);
-    //}
-
-    public void OnUpdate(Vector2 tilePos, PawnState state)
-    {
-        Debug.Log($"値が更新されました。-> [x : {tilePos.x}, z : {tilePos.y}] [{state}]");
-    }
-
-    public bool CanMove(Vector3 pos, Vector3 input)
-    {
-        var x = pos.x + input.x;
-        var z = pos.z + input.z;
-        x = Mathf.CeilToInt(x);
-        z = Mathf.CeilToInt(z);
-
-        if (x < -2 || x > 2)
+        _field = new Field(FieldWidth, FieldHeight);
+        for (int x = -2; x < FieldWidth - 2; x++)
         {
-            return false;
-        }
-        
-        if (z < -2 || z > 2)
-        {
-            return false;
+            for (int y = -2; y < FieldHeight - 2; y++)
+            {
+                 var obj = Instantiate(_cellPrefab, new Vector3(x, 0, y), _cellPrefab.transform.rotation, transform);
+                _field.SetCell(x, y, obj);
+            }
         }
 
-        return true;
+        _field.SetMaterial(0, 0, material);
+        _playerController.CanMove += _field.CheckCanMove;
+        Player.PlayerData lData = _playerController.LeftData;
+        Player.PlayerData rData = _playerController.RightData;
+        _field.SetPlayer(lData.PointX, lData.PointY, lData);
+        _field.SetPlayer(rData.PointX, rData.PointY, rData);
     }
 
-    //public void ChangePos(Vector3 input, PlayerModel player)
-    //{
-    //    ChangePawnPos(player, input);
-    //}
+    private void OnDisable()
+    {
+        _playerController.CanMove -= _field.CheckCanMove;
+    }
 }

@@ -14,10 +14,10 @@ public enum PawnState
 public class Pawn
 {
     public PawnState State { get; private set; }
-    public Vector2 CellPos { get => _cellPos; }
+    public Vector2 Point { get => _point; }
 
     private Dictionary<Vector3, PawnState> _stateDic = new Dictionary<Vector3, PawnState>();
-    private Vector2 _cellPos;
+    private Vector2 _point;
 
     public Pawn(PawnState forwardState, PawnState backState, PawnState leftState, PawnState rightState, PawnState topState, PawnState bottomState, Vector2 cellPos)
     {
@@ -27,13 +27,13 @@ public class Pawn
         _stateDic.Add(Vector3.right, rightState);
         _stateDic.Add(Vector3.up, topState);
         _stateDic.Add(Vector3.down, bottomState);
-        _cellPos = cellPos;
+        _point = cellPos;
         State = _stateDic[Vector3.up];
     }
 
-    public Vector2 ChangeCellPos(Vector2 cellPos)
+    public Vector2 ChangePoint(Vector2 p)
     {
-        return _cellPos = cellPos;
+        return _point = p;
     }
 
     public PawnState ChangeState(Vector3 input)

@@ -156,15 +156,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5983144014638568151, guid: 49f01f9438d99694396dd6e75b204690, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 5983144014638568151, guid: 49f01f9438d99694396dd6e75b204690, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 5983144014638568151, guid: 49f01f9438d99694396dd6e75b204690, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 5983144014638568151, guid: 49f01f9438d99694396dd6e75b204690, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -195,7 +195,6 @@ GameObject:
   m_Component:
   - component: {fileID: 261628383}
   - component: {fileID: 261628382}
-  - component: {fileID: 261628380}
   m_Layer: 0
   m_Name: Field
   m_TagString: Untagged
@@ -203,18 +202,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &261628380
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 261628379}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a7c863f56883bb48bee5c89dbcef967, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &261628382
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228,6 +215,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _playerController: {fileID: 1633536684}
+  _cellPrefab: {fileID: 6196765660906620174, guid: dd25f961fbba9cf48843d0f1e06bf64f, type: 3}
+  material: {fileID: 2100000, guid: 7bb4e092db9a7014bbdcd0b3d637eab7, type: 2}
 --- !u!4 &261628383
 Transform:
   m_ObjectHideFlags: 0
@@ -277,15 +266,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5983144014638568151, guid: 840706189eb05e44787c726ef2cbb67a, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 5983144014638568151, guid: 840706189eb05e44787c726ef2cbb67a, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 5983144014638568151, guid: 840706189eb05e44787c726ef2cbb67a, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 5983144014638568151, guid: 840706189eb05e44787c726ef2cbb67a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -322,7 +311,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &548993247
 Transform:
   m_ObjectHideFlags: 0
@@ -352,9 +341,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f93ebec0c7a6e874cbbfa6d3fd2da7bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _player: 1
-  _leftPawnPos: {fileID: 434647639}
-  _rightPawnPos: {fileID: 80083923}
+  _user: 1
+  _leftPawnT: {fileID: 434647639}
+  _rightPawnT: {fileID: 80083923}
   _rollSpeed: 2.5
   _dice: 010102020203
 --- !u!1001 &633178916
@@ -411,6 +400,10 @@ PrefabInstance:
     - target: {fileID: 6558139707895240134, guid: 1a71bb890d5631a4da6a6c5bb8af4c14, type: 3}
       propertyPath: m_Name
       value: Tile_5x5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558139707895240134, guid: 1a71bb890d5631a4da6a6c5bb8af4c14, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1a71bb890d5631a4da6a6c5bb8af4c14, type: 3}
@@ -818,9 +811,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f93ebec0c7a6e874cbbfa6d3fd2da7bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _player: 0
-  _leftPawnPos: {fileID: 1215631564}
-  _rightPawnPos: {fileID: 931425409}
+  _user: 0
+  _leftPawnT: {fileID: 1215631564}
+  _rightPawnT: {fileID: 931425409}
   _rollSpeed: 2.5
   _dice: 010102020203
 --- !u!1 &2076602469
