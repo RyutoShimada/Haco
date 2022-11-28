@@ -20,16 +20,29 @@ namespace Player
         /// <summary>
         /// ÉRÉ}ÇÃèÛë‘
         /// </summary>
-        public PawnState State { get; set; }
-        public int PointX { get; set; }
-        public int PointY { get; set; }
+        public PawnState State { get => _pawn.State; }
 
-        public PlayerData(User u, PawnState s, int x, int y)
+        public int PointX { get => (int)_pawn.Point.x; }
+        public int PointY { get => (int)_pawn.Point.y; }
+
+        private Pawn _pawn;
+
+        public PlayerData(User u, int x, int y)
         {
             User = u;
-            State = s;
-            PointX = x;
-            PointY = y;
+
+            _pawn = new Pawn(PawnState.Attack,
+                         PawnState.Attack,
+                         PawnState.Shield,
+                         PawnState.Shield,
+                         PawnState.Wing,
+                         PawnState.DoubleAttack,
+                         new Vector2(x, y));
+        }
+
+        public void ChangeState(Vector3 input)
+        {
+            _pawn.ChangeState(input);
         }
     }
 }

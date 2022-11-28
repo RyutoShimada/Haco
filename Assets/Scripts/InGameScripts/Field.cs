@@ -35,6 +35,7 @@ public class Field
     {
         ConvertPositionToIndex(ref x, ref y);
         _players[x, y] = p;
+        Debug.Log($"set player : _players[{x},{y}] = {_players[x, y]}  ({this})");
     }
 
     /// <summary>
@@ -53,35 +54,40 @@ public class Field
     {
         ConvertPositionToIndex(ref x, ref y);
         _players[x, y] = null;
+        Debug.Log($"remove player : _players[{x},{y}] = {_players[x, y]}  ({this})");
     }
 
     /// <summary>
     /// ˆÚ“®‚Å‚«‚é‚©Šm”F‚·‚é
     /// </summary>
     /// <returns></returns>
-    public bool CheckCanMove(Vector2 input, PlayerData p)
+    public bool CheckCanMove(int x, int y, PlayerData p)
     {
-        int x = (int)input.x + p.PointX;
-        int y = (int)input.y + p.PointY;
+        int nextX = x + p.PointX;
+        int nextY = y + p.PointY;
 
-        if (x < -2 || x > 2)
+        Debug.Log($"({nextX}, {nextY}) is checking...  ({this})");
+
+        if (nextX < -2 || nextX > 2)
         {
+            Debug.Log("out of range");
             return false;
         }
-        if (y < -2 || y > 2)
+        if (nextY < -2 || nextY > 2)
         {
+            Debug.Log("out of range");
             return false;
         }
 
         //ConvertPositionToIndex(ref x, ref y);
-        if (GetPlayer(x, y) != null)
+        if (GetPlayer(nextX, nextY) != null)
         {
+            Debug.Log("already exist");
             return false;
         }
 
-        //Debug.Log($"point : ({p.PointX}, {p.PointY}) -> ({newX}, {newY})");
-        
-        SetPlayer(x, y, p);
+        Debug.Log($"approval point : ({p.PointX}, {p.PointY}) -> ({nextX}, {nextY})  ({this})");
+        SetPlayer(nextX, nextY, p);
         RemovePlayer(p.PointX, p.PointY);
         
         return true;

@@ -7,7 +7,9 @@ public class FieldController : MonoBehaviour
     public static FieldController Instance { get; private set; }
 
     [SerializeField]
-    PlayerController _playerController;
+    PlayerController _playerController1;
+    [SerializeField]
+    PlayerController _playerController2;
 
     [SerializeField]
     private GameObject _cellPrefab;
@@ -47,15 +49,21 @@ public class FieldController : MonoBehaviour
         }
 
         _field.SetMaterial(0, 0, material);
-        _playerController.CanMove += _field.CheckCanMove;
-        Player.PlayerData lData = _playerController.LeftData;
-        Player.PlayerData rData = _playerController.RightData;
-        _field.SetPlayer(lData.PointX, lData.PointY, lData);
-        _field.SetPlayer(rData.PointX, rData.PointY, rData);
+
+        _playerController1.CanMove += _field.CheckCanMove;
+        _playerController2.CanMove += _field.CheckCanMove;
+        Player.PlayerData player1L = _playerController1.LeftData;
+        Player.PlayerData player1R = _playerController1.RightData;
+        Player.PlayerData player2L = _playerController2.LeftData;
+        Player.PlayerData player2R = _playerController2.RightData;
+        _field.SetPlayer(player1L.PointX, player1L.PointY, player1L);
+        _field.SetPlayer(player1R.PointX, player1R.PointY, player1R);
+        _field.SetPlayer(player2L.PointX, player2L.PointY, player2L);
+        _field.SetPlayer(player2R.PointX, player2R.PointY, player2R);
     }
 
     private void OnDisable()
     {
-        _playerController.CanMove -= _field.CheckCanMove;
+        _playerController1.CanMove -= _field.CheckCanMove;
     }
 }

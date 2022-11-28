@@ -27,8 +27,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private byte[] _dice = { 1, 1, 2, 2, 2, 3 };
 
-    private Pawn _leftPawn = default;
-    private Pawn _rightPawn = default;
+    //private Pawn _leftPawn = default;
+    //private Pawn _rightPawn = default;
     private bool _isMoving = default;
     private Vector3 _input = default;
     private PlayerState _state = PlayerState.Stay;
@@ -39,33 +39,31 @@ public class PlayerController : MonoBehaviour
     private PlayerData _rightData;
     private PlayerData _currentData;
 
-    public PawnState State { get => _leftPawn.State; }
-
     public PlayerData LeftData { get => _leftData; }
     public PlayerData RightData { get => _rightData; }
 
-    public System.Func<Vector2, PlayerData, bool> CanMove;
+    public System.Func<int, int, PlayerData, bool> CanMove;
 
     private void Awake()
     {
-        _leftPawn = new Pawn(PawnState.Attack,
-                         PawnState.Attack,
-                         PawnState.Shield,
-                         PawnState.Shield,
-                         PawnState.Wing,
-                         PawnState.DoubleAttack,
-                         new Vector2(_leftPawnT.position.x, _leftPawnT.position.z));
+        //_leftPawn = new Pawn(PawnState.Attack,
+        //                 PawnState.Attack,
+        //                 PawnState.Shield,
+        //                 PawnState.Shield,
+        //                 PawnState.Wing,
+        //                 PawnState.DoubleAttack,
+        //                 new Vector2(_leftPawnT.position.x, _leftPawnT.position.z));
 
-        _rightPawn = new Pawn(PawnState.Attack,
-                         PawnState.Attack,
-                         PawnState.Shield,
-                         PawnState.Shield,
-                         PawnState.Wing,
-                         PawnState.DoubleAttack,
-                         new Vector2(_rightPawnT.position.x, _rightPawnT.position.z));
+        //_rightPawn = new Pawn(PawnState.Attack,
+        //                 PawnState.Attack,
+        //                 PawnState.Shield,
+        //                 PawnState.Shield,
+        //                 PawnState.Wing,
+        //                 PawnState.DoubleAttack,
+        //                 new Vector2(_rightPawnT.position.x, _rightPawnT.position.z));
 
-        _leftData = new PlayerData(_user, _leftPawn.State, (int)_leftPawnT.position.x, (int)_leftPawnT.position.z);
-        _rightData = new PlayerData(_user, _rightPawn.State, (int)_rightPawnT.position.x, (int)_rightPawnT.position.z);
+        _leftData = new PlayerData(_user, (int)_leftPawnT.position.x, (int)_leftPawnT.position.z);
+        _rightData = new PlayerData(_user, (int)_rightPawnT.position.x, (int)_rightPawnT.position.z);
     }
 
     // Start is called before the first frame update
@@ -117,7 +115,7 @@ public class PlayerController : MonoBehaviour
         if (random >= 0 && random < _dice.Length)
         {
             _movableRange = _dice[random];
-            Debug.Log($"移動可能数：{_movableRange}");
+            //Debug.Log($"移動可能数：{_movableRange}");
             ChangeState(PlayerState.SelectPawn);
         }
     }
@@ -163,20 +161,19 @@ public class PlayerController : MonoBehaviour
         // nullだった時動かなくなるのを防ぐ
         if (CanMove == null)
         {
-            CanMove += (x, y) => true;
+            CanMove += (x, y, z) => true;
         }
 
-        if (CanMove.Invoke(new Vector2(dir.x, dir.z), _currentData))
+        Debug.Log($"request : ({_leftData.PointX}, {_leftData.PointY}) -> ({_leftData.PointX + dir.x}, {_leftData.PointY + dir.z})  ({this})");
+
+        if (CanMove.Invoke((int)dir.x, (int)dir.z, _currentData))
         {
             //          基準となる自分の座標　　移動の処理（Vector3.down をいれないと上に上がっていく）
             var anchor = _currentPawnTransform.position + (Vector3.down + dir) * 0.5f;
             var axis = Vector3.Cross(Vector3.up, dir);
 
-            _leftPawn.ChangeState(dir);
-            //FieldController.Instance.ChangePos(dir, _playerModel);
+            _leftData.ChangeState(dir);
             _corutine = StartCoroutine(Roll(anchor, axis));
-            _leftData.PointX += (int)dir.x;
-            _leftData.PointY += (int)dir.z;
         }
         else
         {

@@ -31,31 +31,27 @@ public class Pawn
         State = _stateDic[Vector3.up];
     }
 
-    public Vector2 ChangePoint(Vector2 p)
+    public void ChangeState(Vector3 input)
     {
-        return _point = p;
-    }
+        _point.x += input.x;
+        _point.y += input.z;
 
-    public PawnState ChangeState(Vector3 input)
-    {
         if (input == Vector3.forward)
         {
-            return State = ForwardRoll();
+            State = ForwardRoll();
         }
         if (input == Vector3.back)
         {
-            return State = BackRoll();
+            State = BackRoll();
         }
         if (input == Vector3.right)
         {
-            return State = RightRoll();
+            State = RightRoll();
         }
         if (input == Vector3.left)
         {
-            return State = LeftRoll();
+            State = LeftRoll();
         }
-
-        return PawnState.None;
     }
 
     private PawnState ForwardRoll()
