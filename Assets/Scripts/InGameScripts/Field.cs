@@ -1,95 +1,135 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Player;
-public class Field
+using MyPlayer;
+
+public class Field : MonoBehaviour
 {
-    private GameObject[,] _cells;
-    private PlayerData[,] _players;
-
-    public Field(int width, int height)
+    public class PointData
     {
-        _cells = new GameObject[width, height];
-        _players = new PlayerData[width, height];
-    }
+        public int PointX { get; private set; }
+        public int PointZ { get; private set; }
+        public Material Material { get; private set; }
 
-    /// <summary>
-    /// CellとなるGameObjectを登録
-    /// </summary>
-    /// <param name="x">座標</param>
-    /// <param name="y">座標</param>
-    /// <param name="obj">インスタンス化したオブジェクト</param>
-    public void SetCell(int x, int y, GameObject obj)
-    {
-        ConvertPositionToIndex(ref x,  ref y);
-        _cells[x, y] = obj;
-    }
+        public PlayerInfo Player { get; private set; }
 
-    public PlayerData GetPlayer(int x, int y)
-    {
-        ConvertPositionToIndex(ref x, ref y);
-        return _players[x, y];
-    }
 
-    public void SetPlayer(int x, int y, PlayerData p)
-    {
-        ConvertPositionToIndex(ref x, ref y);
-        _players[x, y] = p;
-        Debug.Log($"set player : _players[{x},{y}] = {_players[x, y]}  ({this})");
-    }
-
-    /// <summary>
-    /// MAterialの変更
-    /// </summary>
-    /// <param name="x">座標</param>
-    /// <param name="y">座標</param>
-    /// <param name="m">Material</param>
-    public void SetMaterial(int x, int y, Material m)
-    {
-        ConvertPositionToIndex(ref x, ref y);
-        _cells[x, y].GetComponent<Renderer>().material = m;
-    }
-
-    private void RemovePlayer(int x, int y)
-    {
-        ConvertPositionToIndex(ref x, ref y);
-        _players[x, y] = null;
-        Debug.Log($"remove player : _players[{x},{y}] = {_players[x, y]}  ({this})");
-    }
-
-    /// <summary>
-    /// 移動できるか確認する
-    /// </summary>
-    /// <returns></returns>
-    public bool CheckCanMove(int x, int y, PlayerData p)
-    {
-        int nextX = x + p.PointX;
-        int nextY = y + p.PointY;
-
-        Debug.Log($"({nextX}, {nextY}) is checking...  ({this})");
-
-        if (nextX < -2 || nextX > 2)
+        public PointData(int x, int z, Material m)
         {
-            Debug.Log("out of range");
-            return false;
-        }
-        if (nextY < -2 || nextY > 2)
-        {
-            Debug.Log("out of range");
-            return false;
+            PointX = x;
+            PointZ = z;
+            Material = m;
         }
 
-        //ConvertPositionToIndex(ref x, ref y);
-        if (GetPlayer(nextX, nextY) != null)
+        /// <summary>
+        /// オブジェクトを設定する
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns>設定に成功したら true を返す</returns>
+        public bool SetObject(PlayerInfo obj)
         {
-            Debug.Log("already exist");
-            return false;
+            if (obj == null)
+            {
+                Player = obj;
+                return true;
+            }
+
+            if (Player != null)
+            {
+                return false;
+            }
+            else
+            {
+                Player = obj;
+                return true;
+            }
         }
 
-        Debug.Log($"approval point : ({p.PointX}, {p.PointY}) -> ({nextX}, {nextY})  ({this})");
-        SetPlayer(nextX, nextY, p);
-        RemovePlayer(p.PointX, p.PointY);
+        public void ChangeMaterialColor(Color c)
+        {
+            Material.color = c;
+        }
+    }
+
+    private const byte FieldWidth = 5;
+    private const byte FieldHeight = 5;
+
+    [SerializeField]
+    private GameObject _cellPrefab;
+
+    private PointData[,] _cells = new PointData[FieldWidth, FieldHeight];
+
+    private void Awake()
+    {
+        InitSetCells();
+    }
+
+    void Start()
+    {
         
+    }
+
+    void Update()
+    {
+        
+    }
+
+    private void InitSetCells()
+    {
+        for (int x = -2; x < FieldWidth - 2; x++)
+        {
+            for (int z = -2; z < FieldHeight - 2; z++)
+            {
+                var obj = Instantiate(_cellPrefab, new Vector3(x, 0, z), _cellPrefab.transform.rotation, transform);
+                var m = obj.GetComponent<Renderer>().material;
+                _cells[x + 2, z + 2] = new PointData(x, z, m);
+            }
+        }
+    }
+
+    public void SetPlayer(int indexX, int indexY, PlayerInfo player)
+    {
+        _cells[indexX, indexY].SetObject(player);
+        _cells[indexX, indexY].ChangeMaterialColor(Color.red);
+    }
+
+    public bool MoveTo(int x, int z, Vector3 dir)
+    {
+        int posX = x;
+        int posZ = z;
+        int dirX = (int)dir.x;
+        int dirZ = (int)dir.z;
+
+        int nextX = posX + dirX;
+        int nextZ = posZ + dirZ;
+
+        //Debug.Log($"Point({posX}, {posZ}) -> Point({nextX}, {nextZ})");
+
+        if (!CheckOutOfRange(nextX, nextZ)) 
+        {
+            //Debug.Log("範囲外");
+            return false; 
+        }
+
+        //Debug.Log("範囲内");
+
+        ConvertPositionToIndex(ref nextX, ref nextZ);
+        ConvertPositionToIndex(ref posX, ref posZ);
+
+        if (_cells[nextX, nextZ].SetObject(_cells[posX, posZ].Player))
+        {
+            _cells[nextX, nextZ].ChangeMaterialColor(Color.red);
+        }
+        else
+        {
+#if UNITY_EDITOR
+            Debug.Log($"_cell[{nextX}, {nextZ}] は既にオブジェクトが入っています。");
+            return false;
+#endif
+        }
+
+        _cells[posX, posZ].SetObject(null);
+        _cells[posX, posZ].ChangeMaterialColor(Color.white);
         return true;
     }
 
@@ -99,9 +139,17 @@ public class Field
         y += 2;
     }
 
-    private void ConvertIndexToPosition(ref int x, ref int y)
+    private bool CheckOutOfRange(int x, int z)
     {
-        x -= 2;
-        y -= 2;
+        if (x < -2 || x > 2)
+        {
+            return false;
+        }
+        if (z < -2 || z > 2)
+        {
+            return false;
+        }
+
+        return true;
     }
 }
