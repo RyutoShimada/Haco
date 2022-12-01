@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MyPlayer;
 
-public class Field : MonoBehaviour
+public class FieldManager : MonoBehaviour
 {
     public class PointData
     {
@@ -93,7 +93,7 @@ public class Field : MonoBehaviour
         _cells[indexX, indexY].ChangeMaterialColor(Color.red);
     }
 
-    public bool MoveTo(int x, int z, Vector3 dir)
+    public bool MoveTo(int x, int z, Vector3 dir, bool traceMode)
     {
         int posX = x;
         int posZ = z;
@@ -129,8 +129,41 @@ public class Field : MonoBehaviour
         }
 
         _cells[posX, posZ].SetObject(null);
-        _cells[posX, posZ].ChangeMaterialColor(Color.white);
+        if (traceMode)
+        {
+            _cells[posX, posZ].ChangeMaterialColor(Color.white);
+        }
+        else
+        {
+            _cells[posX, posZ].ChangeMaterialColor(Color.green);
+        }
+        
         return true;
+    }
+
+    public bool SearchAround(int x, int z)
+    {
+        ConvertPositionToIndex(ref x, ref z);
+
+        // 上下左右を見た時、配列の範囲外じゃなかったら調べる
+        if (z + 1 < _cells.GetLength(1))
+        {
+            if (_cells[x, z + 1].Player != null) return true;
+        }
+        if (z - 1 > 0)
+        {
+            if (_cells[x, z - 1].Player != null) return true;
+        }
+        if (x + 1 < _cells.GetLength(0))
+        {
+            if (_cells[x + 1, z].Player != null) return true;
+        }
+        if (x - 1 > 0)
+        {
+            if (_cells[x - 1, z].Player != null) return true;
+        }
+
+        return false;
     }
 
     private void ConvertPositionToIndex(ref int x, ref int y)

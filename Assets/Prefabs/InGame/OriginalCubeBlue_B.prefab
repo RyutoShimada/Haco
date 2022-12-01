@@ -61,7 +61,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0044672a25a7815498e193746af23980, type: 2}
+  - {fileID: 2100000, guid: fbfa81d3ffc63c04caff9b68f19a0ca2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -92,6 +92,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5983144014638568151}
+  - component: {fileID: 1981530996138081971}
   m_Layer: 0
   m_Name: OriginalCubeBlue_B
   m_TagString: Untagged
@@ -120,6 +121,24 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1981530996138081971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5983144014638568150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69095ad6d8466484e84f57b73608f1ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _foward: 0
+  _back: 0
+  _left: 1
+  _right: 1
+  _up: 2
+  _down: 3
 --- !u!1 &5983144015116143105
 GameObject:
   m_ObjectHideFlags: 0
@@ -430,7 +449,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: fbfa81d3ffc63c04caff9b68f19a0ca2, type: 2}
+  - {fileID: 2100000, guid: 0044672a25a7815498e193746af23980, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

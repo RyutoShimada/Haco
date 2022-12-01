@@ -11,8 +11,21 @@ public enum PawnState
     None = 0
 }
 
-public class Pawn : MonoBehaviour
+public class PawnController : MonoBehaviour
 {
+    [SerializeField]
+    private PawnState _foward;
+    [SerializeField]
+    private PawnState _back;
+    [SerializeField]
+    private PawnState _left;
+    [SerializeField]
+    private PawnState _right;
+    [SerializeField]
+    private PawnState _up;
+    [SerializeField]
+    private PawnState _down;
+
     public PawnState State { get; private set; }
     public int PointX { get; private set; }
     public int PointZ { get; private set; }
@@ -22,19 +35,24 @@ public class Pawn : MonoBehaviour
     private float _rollSpeed = 2.5f;
     private bool _isMoving = false;
 
-    private void Start()
+    private void Awake()
     {
         SetState();
     }
 
+    private void Start()
+    {
+        
+    }
+
     public void SetState()
     {
-        _stateDic.Add(Vector3.forward, PawnState.Attack);
-        _stateDic.Add(Vector3.back, PawnState.Attack);
-        _stateDic.Add(Vector3.left, PawnState.Shield);
-        _stateDic.Add(Vector3.right, PawnState.Shield);
-        _stateDic.Add(Vector3.up, PawnState.Wing);
-        _stateDic.Add(Vector3.down, PawnState.DoubleAttack);
+        _stateDic.Add(Vector3.forward, _foward);
+        _stateDic.Add(Vector3.back, _back);
+        _stateDic.Add(Vector3.left, _left);
+        _stateDic.Add(Vector3.right, _right);
+        _stateDic.Add(Vector3.up, _up);
+        _stateDic.Add(Vector3.down, _down);
         PointX = (int)transform.position.x;
         PointZ = (int)transform.position.z;
         State = _stateDic[Vector3.up];
