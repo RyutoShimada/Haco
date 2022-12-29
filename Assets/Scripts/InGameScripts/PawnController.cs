@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+#region PublicEnum
 public enum PawnState
 {
     Attack,
@@ -10,9 +11,11 @@ public enum PawnState
     Wing,
     None = 0
 }
+#endregion
 
 public class PawnController : MonoBehaviour
 {
+    #region SerializeField
     [SerializeField]
     private PawnState _foward;
     [SerializeField]
@@ -25,16 +28,27 @@ public class PawnController : MonoBehaviour
     private PawnState _up;
     [SerializeField]
     private PawnState _down;
+    [SerializeField]
+    private float _rollSpeed = 2.5f;
+    [SerializeField]
+    private float _moveSpeed = 2f;
+    [SerializeField]
+    private float _moveSmoothness = 100f;
+    #endregion
 
+    #region PublicField
     public PawnState State { get; private set; }
     public int PointX { get; private set; }
     public int PointZ { get; private set; }
     public bool IsMoving { get => _isMoving; }
+    #endregion
 
+    #region PrivateField
     private Dictionary<Vector3, PawnState> _stateDic = new Dictionary<Vector3, PawnState>();
-    private float _rollSpeed = 2.5f;
     private bool _isMoving = false;
+    #endregion
 
+    #region MonoBehaviour
     private void Awake()
     {
         SetState();
@@ -44,7 +58,9 @@ public class PawnController : MonoBehaviour
     {
         
     }
+    #endregion
 
+    #region PublicMethod
     public void SetState()
     {
         _stateDic.Add(Vector3.forward, _foward);
@@ -87,6 +103,13 @@ public class PawnController : MonoBehaviour
         }
     }
 
+    public void Move(Vector3 dir, int dis)
+    {
+        StartCoroutine(Movement(dir, dis));
+    }
+    #endregion
+
+    #region PrivateMethod
     private PawnState ForwardRoll()
     {
         var prevTop = _stateDic[Vector3.up];
@@ -162,7 +185,9 @@ public class PawnController : MonoBehaviour
 
         return _stateDic[Vector3.up];
     }
+    #endregion
 
+    #region IEnumerator
     private IEnumerator Roll(Vector3 dir)
     {
         var anchor = transform.position + (Vector3.down + dir) * 0.5f;
@@ -178,4 +203,16 @@ public class PawnController : MonoBehaviour
         }
         _isMoving = false;
     }
+
+    private IEnumerator Movement(Vector3 dir, int dis)
+    {
+        _isMoving = true;
+        for (int i = 0; i < _moveSmoothness / _moveSpeed; i++)
+        {
+            transform.position += dir.normalized * (dis * _moveSpeed / _moveSmoothness);
+            yield return null;
+        }
+        _isMoving = false;
+    }
+    #endregion
 }

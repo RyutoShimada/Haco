@@ -4,13 +4,16 @@ using UnityEngine;
 
 namespace MyPlayer
 {
+    #region PublicEnum
     public enum User
     {
         Player1,
         Player2,
         NPC
     }
+    #endregion
 
+    #region PlayerInfoClass
     public class PlayerInfo
     {
         public PawnState PawnState { get => _pawn.State; }
@@ -25,15 +28,26 @@ namespace MyPlayer
             _pawn = pawn;
         }
     }
+    #endregion
 
     public class Player : MonoBehaviour
     {
-        public enum SelectPawn
+        #region PrivateEnum
+        private enum SelectPawn
         {
             Left,
             Right
         }
 
+        private enum State
+        {
+            Stay,
+            Select,
+            Move
+        }
+        #endregion
+
+        #region SerializeField
         [SerializeField]
         private User _user = default;
         [SerializeField]
@@ -44,19 +58,27 @@ namespace MyPlayer
         private FieldManager _field = default;
         [SerializeField]
         private SelectPawn _selectPawn = default;
+        #endregion
 
+        #region PrivateField
         private PlayerInfo _playerInfo1 = default;
         private PlayerInfo _playerInfo2 = default;
         private PawnController _currentPawn = default;
         private byte[] _dice = { 1, 1, 2, 2, 2, 3 };
         private Stack<Vector3> _tracesMovement = new Stack<Vector3>();
+        private State _currentState = State.Stay;
+        #endregion
 
+        #region PublicField
         public byte _movaleRange = default;
         public byte _bonusMovaleRange = default;
         /// <summary>
         /// true なら動ける
         /// </summary>
         public bool _canMove;
+        #endregion
+
+        #region MonoBehaviour
 
         private void OnValidate()
         {
@@ -86,7 +108,7 @@ namespace MyPlayer
         {
             if (_canMove != true) return;
             if (_currentPawn.IsMoving) return;
-            if (_movaleRange <= 0)
+            if (_bonusMovaleRange <= 0 && _movaleRange <= 0)
             {
                 _movaleRange = 0;
                 return;
@@ -108,8 +130,15 @@ namespace MyPlayer
             {
                 Movement(Vector3.right);
             }
-        }
 
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                _currentPawn.Move(Vector3.forward, 1);
+            }
+        }
+        #endregion
+
+        #region PublicMethod
         public void CanMove(bool move)
         {
             _canMove = move;
@@ -120,7 +149,9 @@ namespace MyPlayer
             byte random = (byte)Random.Range(0, _dice.Length);
             AddMovaleRange(_dice[random]);
         }
+        #endregion
 
+        #region PrivateMethod
         private void ChangeSelectPawn(SelectPawn select)
         {
             _selectPawn = select;
@@ -191,7 +222,7 @@ namespace MyPlayer
             }
 
             // バトルチェック
-            if (_field.SearchAround(_currentPawn.PointX, _currentPawn.PointZ))
+            if (_field.SearchEnemysAround(_currentPawn.PointX, _currentPawn.PointZ, _user))
             {
                 _canMove = false;
             }
@@ -239,6 +270,7 @@ namespace MyPlayer
         {
             _movaleRange = num;
         }
+        #endregion
     }
 }
 

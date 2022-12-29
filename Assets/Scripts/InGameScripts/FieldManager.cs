@@ -5,22 +5,26 @@ using MyPlayer;
 
 public class FieldManager : MonoBehaviour
 {
+    #region PointDataClass
     public class PointData
     {
+        #region PublicField
         public int PointX { get; private set; }
         public int PointZ { get; private set; }
         public Material Material { get; private set; }
-
         public PlayerInfo Player { get; private set; }
+        #endregion
 
-
+        #region Constructor
         public PointData(int x, int z, Material m)
         {
             PointX = x;
             PointZ = z;
             Material = m;
         }
+        #endregion
 
+        #region PublicMethod
         /// <summary>
         /// オブジェクトを設定する
         /// </summary>
@@ -49,16 +53,25 @@ public class FieldManager : MonoBehaviour
         {
             Material.color = c;
         }
+        #endregion
     }
+    #endregion
 
+    #region ConstField
     private const byte FieldWidth = 5;
     private const byte FieldHeight = 5;
+    #endregion
 
+    #region SerializeField
     [SerializeField]
     private GameObject _cellPrefab;
+    #endregion
 
+    #region PrivateField
     private PointData[,] _cells = new PointData[FieldWidth, FieldHeight];
+    #endregion
 
+    #region MonoBehaviour
     private void Awake()
     {
         InitSetCells();
@@ -73,20 +86,9 @@ public class FieldManager : MonoBehaviour
     {
         
     }
+    #endregion
 
-    private void InitSetCells()
-    {
-        for (int x = -2; x < FieldWidth - 2; x++)
-        {
-            for (int z = -2; z < FieldHeight - 2; z++)
-            {
-                var obj = Instantiate(_cellPrefab, new Vector3(x, 0, z), _cellPrefab.transform.rotation, transform);
-                var m = obj.GetComponent<Renderer>().material;
-                _cells[x + 2, z + 2] = new PointData(x, z, m);
-            }
-        }
-    }
-
+    #region PublicMethod
     public void SetPlayer(int indexX, int indexY, PlayerInfo player)
     {
         _cells[indexX, indexY].SetObject(player);
@@ -141,31 +143,46 @@ public class FieldManager : MonoBehaviour
         return true;
     }
 
-    public bool SearchAround(int x, int z)
+    public bool SearchEnemysAround(int x, int z, User user)
     {
         ConvertPositionToIndex(ref x, ref z);
 
         // 上下左右を見た時、配列の範囲外じゃなかったら調べる
         if (z + 1 < _cells.GetLength(1))
         {
-            if (_cells[x, z + 1].Player != null) return true;
+            // コマが存在していて、そのコマが敵だった場合に true を返す
+            if (_cells[x, z + 1].Player != null && _cells[x, z + 1].Player.User != user) return true;
         }
         if (z - 1 > 0)
         {
-            if (_cells[x, z - 1].Player != null) return true;
+            if (_cells[x, z - 1].Player != null && _cells[x, z - 1].Player.User != user) return true;
         }
         if (x + 1 < _cells.GetLength(0))
         {
-            if (_cells[x + 1, z].Player != null) return true;
+            if (_cells[x + 1, z].Player != null && _cells[x + 1, z].Player.User != user) return true;
         }
         if (x - 1 > 0)
         {
-            if (_cells[x - 1, z].Player != null) return true;
+            if (_cells[x - 1, z].Player != null && _cells[x - 1, z].Player.User != user) return true;
         }
 
         return false;
     }
+    #endregion
 
+    #region PrivateMethod
+    private void InitSetCells()
+    {
+        for (int x = -2; x < FieldWidth - 2; x++)
+        {
+            for (int z = -2; z < FieldHeight - 2; z++)
+            {
+                var obj = Instantiate(_cellPrefab, new Vector3(x, 0, z), _cellPrefab.transform.rotation, transform);
+                var m = obj.GetComponent<Renderer>().material;
+                _cells[x + 2, z + 2] = new PointData(x, z, m);
+            }
+        }
+    }
     private void ConvertPositionToIndex(ref int x, ref int y)
     {
         x += 2;
@@ -185,4 +202,5 @@ public class FieldManager : MonoBehaviour
 
         return true;
     }
+    #endregion
 }
