@@ -9,7 +9,6 @@ public enum PawnState
     Shield,
     DoubleAttack,
     Wing,
-    None = 0
 }
 #endregion
 
@@ -38,13 +37,13 @@ public class PawnController : MonoBehaviour
 
     #region PublicField
     public PawnState State { get; private set; }
-    public int PointX { get; private set; }
-    public int PointZ { get; private set; }
+    public Vector3Int Point { get => _point; }
     public bool IsMoving { get => _isMoving; }
     #endregion
 
     #region PrivateField
     private Dictionary<Vector3, PawnState> _stateDic = new Dictionary<Vector3, PawnState>();
+    private Vector3Int _point;
     private bool _isMoving = false;
     #endregion
 
@@ -69,17 +68,15 @@ public class PawnController : MonoBehaviour
         _stateDic.Add(Vector3.right, _right);
         _stateDic.Add(Vector3.up, _up);
         _stateDic.Add(Vector3.down, _down);
-        PointX = (int)transform.position.x;
-        PointZ = (int)transform.position.z;
+        _point = new Vector3Int((int)transform.position.x, 0, (int)transform.position.z);
         State = _stateDic[Vector3.up];
     }
 
-    public void ChangeState(Vector3 input)
+    public void ChangeState(Vector3Int input)
     {
         if (_isMoving) return;
-
-        PointX += (int)input.x;
-        PointZ += (int)input.z;
+        
+        _point += input;
 
         if (input == Vector3.forward)
         {
@@ -103,9 +100,11 @@ public class PawnController : MonoBehaviour
         }
     }
 
-    public void Move(Vector3 dir, int dis)
+    public void Move(Vector3 dir)
     {
-        StartCoroutine(Movement(dir, dis));
+        var intVec = new Vector3Int((int)dir.x, 0, (int)dir.z);
+        _point += intVec;
+        StartCoroutine(Movement(dir));
     }
     #endregion
 
@@ -204,12 +203,12 @@ public class PawnController : MonoBehaviour
         _isMoving = false;
     }
 
-    private IEnumerator Movement(Vector3 dir, int dis)
+    private IEnumerator Movement(Vector3 vec)
     {
         _isMoving = true;
         for (int i = 0; i < _moveSmoothness / _moveSpeed; i++)
         {
-            transform.position += dir.normalized * (dis * _moveSpeed / _moveSmoothness);
+            transform.position += vec * (_moveSpeed / _moveSmoothness);
             yield return null;
         }
         _isMoving = false;

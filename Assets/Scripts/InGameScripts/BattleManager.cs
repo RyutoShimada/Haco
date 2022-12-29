@@ -1,24 +1,27 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using MyPlayer;
-
-public class BattleManager : MonoBehaviour
+public static class BattleManager
 {
-    public static BattleManager Instance { get; private set; }
-
-    [SerializeField]
-    private Player _player1;
-    [SerializeField]
-    private Player _player2;
-
-    private void Awake()
+   public static int JudgeTheBattle(PawnState attaker, PawnState defender)
     {
-        Instance = this;
-    }
+        switch (attaker)
+        {
+            case PawnState.Attack:
+                if (defender != PawnState.Shield)
+                {
+                    return 1;
+                }
+                return 0;
+            case PawnState.Shield:
+                return 0;
+            case PawnState.DoubleAttack:
+                if (defender != PawnState.Shield)
+                {
+                    return 2;
+                }
+                return 1;
+            default:
+                break;
+        }
 
-    public void StartBattle(PlayerInfo attaker, PlayerInfo defender)
-    {
-
+        return -1; // ÉGÉâÅ[
     }
 }

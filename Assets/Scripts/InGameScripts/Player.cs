@@ -21,11 +21,28 @@ namespace MyPlayer
         public User User { get; private set; }
 
         private PawnController _pawn;
+        private Player _player;
 
-        public PlayerInfo(User user, PawnController pawn)
+        public PlayerInfo(User user, PawnController pawn, Player player)
         {
             User = user;
             _pawn = pawn;
+            _player = player;
+        }
+
+        public void DoMove(Vector3 vec)
+        {
+            _pawn.Move(vec);
+        }
+
+        public void BeAttacked(int damage)
+        {
+            _player.Life -= damage;
+            if (_player.Life <= 0)
+            {
+                _player.CanMove(false);
+                _player.Life = 0;
+            }
         }
     }
     #endregion
@@ -35,8 +52,8 @@ namespace MyPlayer
         #region PrivateEnum
         private enum SelectPawn
         {
-            Left,
-            Right
+            Up,
+            Down
         }
 
         private enum State
@@ -51,13 +68,15 @@ namespace MyPlayer
         [SerializeField]
         private User _user = default;
         [SerializeField]
-        private PawnController _pawnL = default;
+        private PawnController _pawnU = default;
         [SerializeField]
-        private PawnController _pawnR = default;
+        private PawnController _pawnD = default;
         [SerializeField]
         private FieldManager _field = default;
         [SerializeField]
-        private SelectPawn _selectPawn = default;
+        private SelectPawn _selectPawn = SelectPawn.Down;
+        [SerializeField]
+        private int _life = 3;
         #endregion
 
         #region PrivateField
@@ -76,6 +95,11 @@ namespace MyPlayer
         /// true なら動ける
         /// </summary>
         public bool _canMove;
+        public int Life
+        {
+            get { return _life; }
+            set { _life = value; }
+        }
         #endregion
 
         #region MonoBehaviour
@@ -87,19 +111,19 @@ namespace MyPlayer
 
         private void Awake()
         {
-
+            
         }
 
         void Start()
         {
-            _playerInfo1 = new PlayerInfo(_user, _pawnL);
-            _playerInfo2 = new PlayerInfo(_user, _pawnR);
+            _playerInfo1 = new PlayerInfo(_user, _pawnU, this);
+            _playerInfo2 = new PlayerInfo(_user, _pawnD, this);
 
             // ここをどうにかしたい
-            _field.SetPlayer((int)_pawnL.PointX + 2, (int)_pawnL.PointZ + 2, _playerInfo1);
-            _field.SetPlayer((int)_pawnR.PointX + 2, (int)_pawnR.PointZ + 2, _playerInfo2);
+            _field.SetPlayer(_pawnU.Point, _playerInfo1);
+            _field.SetPlayer(_pawnD.Point, _playerInfo2);
 
-            _currentPawn = _pawnL;
+            _currentPawn = _pawnD;
             RollDice();
         }
 
@@ -116,24 +140,19 @@ namespace MyPlayer
 
             if (Input.GetKeyDown(KeyCode.W))
             {
-                Movement(Vector3.forward);
+                Movement(Vector3Int.forward);
             }
             else if (Input.GetKeyDown(KeyCode.A))
             {
-                Movement(Vector3.left);
+                Movement(Vector3Int.left);
             }
             else if (Input.GetKeyDown(KeyCode.S))
             {
-                Movement(Vector3.back);
+                Movement(Vector3Int.back);
             }
             else if (Input.GetKeyDown(KeyCode.D))
             {
-                Movement(Vector3.right);
-            }
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                _currentPawn.Move(Vector3.forward, 1);
+                Movement(Vector3Int.right);
             }
         }
         #endregion
@@ -158,29 +177,29 @@ namespace MyPlayer
 
             switch (_selectPawn)
             {
-                case SelectPawn.Left:
-                    _currentPawn = _pawnL;
+                case SelectPawn.Up:
+                    _currentPawn = _pawnU;
                     break;
-                case SelectPawn.Right:
-                    _currentPawn = _pawnR;
+                case SelectPawn.Down:
+                    _currentPawn = _pawnD;
                     break;
                 default:
                     break;
             }
         }
 
-        private void Movement(Vector3 input)
+        private void Movement(Vector3Int input)
         {
             // 後戻りしているかの確認
-            if (_tracesMovement.Count > 0)
+            if (_tracesMovement.Count > 0) // 既に行動していたら
             {
                 // 次に移動する場所が、元いた場所かどうか確認する
                 var next = input;
-                next.x += _currentPawn.PointX;
-                next.z += _currentPawn.PointZ;
+                next += _currentPawn.Point;
                 if (_tracesMovement.Peek() == next)
                 {
-                    _field.MoveTo(_currentPawn.PointX, _currentPawn.PointZ, input, true);
+                    _field.CanMove(_currentPawn.Point, input);
+                    _field.UpdateData(_currentPawn.Point, input, true);
                     _currentPawn.ChangeState(input);
                     _tracesMovement.Pop(); // 元いた場所に戻ったので、最後の記録を破棄
 
@@ -199,17 +218,14 @@ namespace MyPlayer
             }
 
             // 移動できるか確認する
-            if (_field.MoveTo(_currentPawn.PointX, _currentPawn.PointZ, input, false))
+            if (_field.CanMove(_currentPawn.Point, input))
             {
-                var prevX = _currentPawn.PointX;
-                var prevZ = _currentPawn.PointZ;
+                var prevPoint = _currentPawn.Point;
 
                 _currentPawn.ChangeState(input); // ここで_currentPawnのPointが書き換わる
+                _field.UpdateData(prevPoint, input);
 
-                // ↓new したくないのでinputを書き換える
-                input.x = prevX;
-                input.z = prevZ;
-                _tracesMovement.Push(input);
+                _tracesMovement.Push(prevPoint);
             }
 
             UseMovaleRange();
@@ -222,9 +238,10 @@ namespace MyPlayer
             }
 
             // バトルチェック
-            if (_field.SearchEnemysAround(_currentPawn.PointX, _currentPawn.PointZ, _user))
+            if (_field.SearchEnemysAround(_currentPawn.Point, _user))
             {
                 _canMove = false;
+                _field.DoBattle();
             }
         }
 

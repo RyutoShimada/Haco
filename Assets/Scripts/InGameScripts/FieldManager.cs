@@ -9,17 +9,18 @@ public class FieldManager : MonoBehaviour
     public class PointData
     {
         #region PublicField
-        public int PointX { get; private set; }
-        public int PointZ { get; private set; }
+        public Vector3Int Point { get; private set; }
         public Material Material { get; private set; }
         public PlayerInfo Player { get; private set; }
         #endregion
 
+        #region PrivateField
+        #endregion
+
         #region Constructor
-        public PointData(int x, int z, Material m)
+        public PointData(Vector3Int pos, Material m)
         {
-            PointX = x;
-            PointZ = z;
+            Point = pos;
             Material = m;
         }
         #endregion
@@ -32,9 +33,10 @@ public class FieldManager : MonoBehaviour
         /// <returns>設定に成功したら true を返す</returns>
         public bool SetObject(PlayerInfo obj)
         {
+            // null を入れたい時  
             if (obj == null)
             {
-                Player = obj;
+                Player = null;
                 return true;
             }
 
@@ -53,6 +55,11 @@ public class FieldManager : MonoBehaviour
         {
             Material.color = c;
         }
+
+        public void ResetMaterialColors()
+        {
+            Material.color = Color.white;
+        }
         #endregion
     }
     #endregion
@@ -69,6 +76,15 @@ public class FieldManager : MonoBehaviour
 
     #region PrivateField
     private PointData[,] _cells = new PointData[FieldWidth, FieldHeight];
+    /// <summary>
+    /// 攻撃側
+    /// </summary>
+    private PointData _attacker;
+    /// <summary>
+    /// 攻撃を受ける側
+    /// </summary>
+    private PointData _defender;
+    private Stack<PointData> _traces = new Stack<PointData>();
     #endregion
 
     #region MonoBehaviour
@@ -79,94 +95,169 @@ public class FieldManager : MonoBehaviour
 
     void Start()
     {
-        
+
     }
 
     void Update()
     {
-        
+
     }
     #endregion
 
     #region PublicMethod
-    public void SetPlayer(int indexX, int indexY, PlayerInfo player)
+    public void SetPlayer(Vector3Int pos, PlayerInfo player)
     {
-        _cells[indexX, indexY].SetObject(player);
-        _cells[indexX, indexY].ChangeMaterialColor(Color.red);
+        var currentIndex = ConvertPositionToIndex(pos);
+        _cells[currentIndex.x, currentIndex.z].SetObject(player);
+        _cells[currentIndex.x, currentIndex.z].ChangeMaterialColor(Color.red);
+        _traces.Push(_cells[currentIndex.x, currentIndex.z]); // 移動の履歴を登録
     }
 
-    public bool MoveTo(int x, int z, Vector3 dir, bool traceMode)
+
+    public bool CanMove(Vector3Int pos, Vector3Int dir)
     {
-        int posX = x;
-        int posZ = z;
-        int dirX = (int)dir.x;
-        int dirZ = (int)dir.z;
+        var nextPos = pos + dir;
+        // 移動先がフィールド内であるかどうか
+        if (!CheckOutOfRange(nextPos)) { return false; }
 
-        int nextX = posX + dirX;
-        int nextZ = posZ + dirZ;
+        var nextIndex = ConvertPositionToIndex(nextPos);
 
-        //Debug.Log($"Point({posX}, {posZ}) -> Point({nextX}, {nextZ})");
-
-        if (!CheckOutOfRange(nextX, nextZ)) 
+        // 移動先にコマがあるかどうか
+        if (_cells[nextIndex.x, nextIndex.z].Player != null)
         {
-            //Debug.Log("範囲外");
-            return false; 
-        }
-
-        //Debug.Log("範囲内");
-
-        ConvertPositionToIndex(ref nextX, ref nextZ);
-        ConvertPositionToIndex(ref posX, ref posZ);
-
-        if (_cells[nextX, nextZ].SetObject(_cells[posX, posZ].Player))
-        {
-            _cells[nextX, nextZ].ChangeMaterialColor(Color.red);
-        }
-        else
-        {
-#if UNITY_EDITOR
-            Debug.Log($"_cell[{nextX}, {nextZ}] は既にオブジェクトが入っています。");
             return false;
-#endif
         }
 
-        _cells[posX, posZ].SetObject(null);
-        if (traceMode)
-        {
-            _cells[posX, posZ].ChangeMaterialColor(Color.white);
-        }
-        else
-        {
-            _cells[posX, posZ].ChangeMaterialColor(Color.green);
-        }
-        
         return true;
     }
 
-    public bool SearchEnemysAround(int x, int z, User user)
+    public void UpdateData(Vector3Int pos, Vector3Int dir)
     {
-        ConvertPositionToIndex(ref x, ref z);
+        var nextPos = pos + dir;
+        var nextIndex = ConvertPositionToIndex(nextPos);
+        var currentIndex = ConvertPositionToIndex(pos);
+
+        // 移動先を登録
+        _cells[nextIndex.x, nextIndex.z].SetObject(_cells[currentIndex.x, currentIndex.z].Player);
+        _cells[currentIndex.x, currentIndex.z].SetObject(null);
+
+        // マスの色変更
+        _cells[nextIndex.x, nextIndex.z].ChangeMaterialColor(Color.red);
+        _cells[currentIndex.x, currentIndex.z].ChangeMaterialColor(Color.green);
+
+        _traces.Push(_cells[currentIndex.x, currentIndex.z]); // 移動の履歴を登録
+    }
+
+    public void UpdateData(Vector3Int pos, Vector3Int dir, bool traceMode)
+    {
+        var nextPos = pos + dir;
+        var nextIndex = ConvertPositionToIndex(nextPos);
+        var currentIndex = ConvertPositionToIndex(pos);
+
+        // 移動先を登録
+        _cells[nextIndex.x, nextIndex.z].SetObject(_cells[currentIndex.x, currentIndex.z].Player);
+        _cells[currentIndex.x, currentIndex.z].SetObject(null);
+
+        // マスの色変更
+        _cells[nextIndex.x, nextIndex.z].ChangeMaterialColor(Color.red);
+
+        if (traceMode)
+        {
+            _cells[currentIndex.x, currentIndex.z].ChangeMaterialColor(Color.white);
+        }
+        else
+        {
+            _cells[currentIndex.x, currentIndex.z].ChangeMaterialColor(Color.green);
+            _traces.Push(_cells[currentIndex.x, currentIndex.z]); // 移動の履歴を登録
+        }
+    }
+
+    public bool SearchEnemysAround(Vector3Int pos, User user)
+    {
+        var currentIndex = ConvertPositionToIndex(pos);
+        var x = currentIndex.x;
+        var z = currentIndex.z;
+
+        _attacker = _cells[x, z]; // 攻撃側を確保
 
         // 上下左右を見た時、配列の範囲外じゃなかったら調べる
         if (z + 1 < _cells.GetLength(1))
         {
             // コマが存在していて、そのコマが敵だった場合に true を返す
-            if (_cells[x, z + 1].Player != null && _cells[x, z + 1].Player.User != user) return true;
+            if (_cells[x, z + 1].Player != null && _cells[x, z + 1].Player.User != user)
+            {
+                _defender = _cells[x, z + 1]; // 攻撃を受ける側を確保しておく
+                return true;
+            }
         }
-        if (z - 1 > 0)
+        if (z - 1 >= 0)
         {
-            if (_cells[x, z - 1].Player != null && _cells[x, z - 1].Player.User != user) return true;
+            if (_cells[x, z - 1].Player != null && _cells[x, z - 1].Player.User != user)
+            {
+                _defender = _cells[x, z - 1];
+                return true;
+            }
         }
         if (x + 1 < _cells.GetLength(0))
         {
-            if (_cells[x + 1, z].Player != null && _cells[x + 1, z].Player.User != user) return true;
+            if (_cells[x + 1, z].Player != null && _cells[x + 1, z].Player.User != user)
+            {
+                _defender = _cells[x + 1, z];
+                return true;
+            }
         }
-        if (x - 1 > 0)
+        if (x - 1 >= 0)
         {
-            if (_cells[x - 1, z].Player != null && _cells[x - 1, z].Player.User != user) return true;
+            if (_cells[x - 1, z].Player != null && _cells[x - 1, z].Player.User != user)
+            {
+                _defender = _cells[x - 1, z];
+                return true;
+            }
         }
 
         return false;
+    }
+
+    public void DoBattle()
+    {
+        // ダメージ計算
+        _defender.Player.BeAttacked(BattleManager.JudgeTheBattle(_attacker.Player.PawnState, _defender.Player.PawnState));
+
+        // 吹っ飛ばし処理
+        Vector3Int attackerPos = _attacker.Point;
+        Vector3Int defenderPos = _defender.Point;
+        // それぞれが飛ぶ方向を算出
+        Vector3Int attackerMoveDir = attackerPos - defenderPos;
+        Vector3Int defenderMoveDir = defenderPos - attackerPos;
+        // それぞれ飛ぶ方向に移動できるか確認
+        var attackerCanMove = CanMove(_attacker.Point, attackerMoveDir);
+        var defenderCanMove = CanMove(_defender.Point, defenderMoveDir);
+
+        // 両方動ける状態なら、それぞれ1マスずつ飛ばす
+        if (attackerCanMove && defenderCanMove)
+        {
+            _attacker.Player.DoMove(attackerMoveDir);
+            UpdateData(_attacker.Point, attackerMoveDir);
+            _defender.Player.DoMove(defenderMoveDir);
+            UpdateData(_defender.Point, defenderMoveDir);
+        }
+        else if (attackerCanMove)
+        {
+            // 防衛側が動けず、攻撃側が動けるなら、攻撃側を2マス動かせるか確認する
+            Debug.Log("攻撃側は動けます。");
+        }
+        else if (defenderCanMove)
+        {
+            // 攻撃側が動けず、防衛側が動けるなら、防衛側を2マス動かせるか確認する
+            Debug.Log("防衛側は動けます。");
+        }
+        else
+        {
+            // 両方動けない場合
+            Debug.Log("両方動けません。");
+        }
+
+        ResetColors();
     }
     #endregion
 
@@ -179,28 +270,41 @@ public class FieldManager : MonoBehaviour
             {
                 var obj = Instantiate(_cellPrefab, new Vector3(x, 0, z), _cellPrefab.transform.rotation, transform);
                 var m = obj.GetComponent<Renderer>().material;
-                _cells[x + 2, z + 2] = new PointData(x, z, m);
+                Vector3Int pos = new Vector3Int(x, 0, z);
+                _cells[x + 2, z + 2] = new PointData(pos, m);
             }
         }
     }
-    private void ConvertPositionToIndex(ref int x, ref int y)
+    private Vector3Int ConvertPositionToIndex(Vector3Int pos)
     {
-        x += 2;
-        y += 2;
+        var index = new Vector3Int(pos.x, pos.y, pos.z);
+        index.x += 2;
+        index.z += 2;
+        return index;
     }
 
-    private bool CheckOutOfRange(int x, int z)
+    private bool CheckOutOfRange(Vector3Int pos)
     {
-        if (x < -2 || x > 2)
+        if (pos.x < -2 || pos.x > 2)
         {
             return false;
         }
-        if (z < -2 || z > 2)
+        if (pos.z < -2 || pos.z > 2)
         {
             return false;
         }
 
         return true;
+    }
+
+    private void ResetColors()
+    {
+        foreach (var item in _traces)
+        {
+            item.ResetMaterialColors();
+        }
+
+        _traces.Clear();
     }
     #endregion
 }
