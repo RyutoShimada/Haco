@@ -57,6 +57,11 @@ public class PawnController : MonoBehaviour
     {
         
     }
+
+    private void Update()
+    {
+        
+    }
     #endregion
 
     #region PublicMethod

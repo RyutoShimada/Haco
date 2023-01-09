@@ -40,7 +40,6 @@ namespace MyPlayer
             _player.Life -= damage;
             if (_player.Life <= 0)
             {
-                _player.CanMove(false);
                 _player.Life = 0;
             }
         }
@@ -60,7 +59,8 @@ namespace MyPlayer
         {
             Stay,
             Select,
-            Move
+            Move,
+            Battle
         }
         #endregion
 
@@ -125,6 +125,7 @@ namespace MyPlayer
 
             _currentPawn = _pawnD;
             RollDice();
+            ChangeState(State.Move);
         }
 
         // Update is called once per frame
@@ -138,6 +139,21 @@ namespace MyPlayer
                 return;
             }
 
+            Statement();
+        }
+        #endregion
+
+        #region PublicMethod
+        public void RollDice()
+        {
+            byte random = (byte)Random.Range(0, _dice.Length);
+            AddMovaleRange(_dice[random]);
+        }
+        #endregion
+
+        #region PrivateMethod
+        private void PlayerInput()
+        {
             if (Input.GetKeyDown(KeyCode.W))
             {
                 Movement(Vector3Int.forward);
@@ -155,22 +171,7 @@ namespace MyPlayer
                 Movement(Vector3Int.right);
             }
         }
-        #endregion
 
-        #region PublicMethod
-        public void CanMove(bool move)
-        {
-            _canMove = move;
-        }
-
-        public void RollDice()
-        {
-            byte random = (byte)Random.Range(0, _dice.Length);
-            AddMovaleRange(_dice[random]);
-        }
-        #endregion
-
-        #region PrivateMethod
         private void ChangeSelectPawn(SelectPawn select)
         {
             _selectPawn = select;
@@ -182,6 +183,49 @@ namespace MyPlayer
                     break;
                 case SelectPawn.Down:
                     _currentPawn = _pawnD;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void ChangeState(State state)
+        {
+            _currentState = state;
+
+            switch (_currentState)
+            {
+                case State.Stay:
+                    break;
+                case State.Select:
+                    break;
+                case State.Move:
+                    break;
+                case State.Battle:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void Statement()
+        {
+            switch (_currentState)
+            {
+                case State.Stay:
+                    break;
+                case State.Select:
+                    break;
+                case State.Move:
+                    PlayerInput();
+                    break;
+                case State.Battle:
+                    // コマの動きが止まったら
+                    if (!_currentPawn.IsMoving)
+                    {
+                        _field.DoBattle();
+                        ChangeState(State.Stay);
+                    }
                     break;
                 default:
                     break;
@@ -240,8 +284,7 @@ namespace MyPlayer
             // バトルチェック
             if (_field.SearchEnemysAround(_currentPawn.Point, _user))
             {
-                _canMove = false;
-                _field.DoBattle();
+                ChangeState(State.Battle);
             }
         }
 
